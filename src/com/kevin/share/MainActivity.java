@@ -1,10 +1,12 @@
 package com.kevin.share;
 
-import java.io.File;
+import java.io.*;
 
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -24,15 +26,52 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-
+    public static File getRobotCacheFile(Context context) throws IOException {
+//        File cacheFile = new File(context.getCacheDir(), "logo.jpg");
+//        File cacheFile = new File("a.jpg");
+        File dir = Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        File cacheFile = new File(dir, "/logo.jpg");
+        try {
+            InputStream inputStream = context.getAssets().open("logo.jpg");
+            try {
+                FileOutputStream outputStream = new FileOutputStream(cacheFile);
+                try {
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = inputStream.read(buf)) > 0) {
+                        outputStream.write(buf, 0, len);
+                    }
+                } finally {
+                    outputStream.close();
+                }
+            } finally {
+                inputStream.close();
+            }
+        } catch (IOException e) {
+            throw new IOException("Could not open robot png", e);
+        }
+        return cacheFile;
+    }
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		
-		File dir = Environment
-				.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-		
-		File file = new File(dir, "/logo.png");
-		
+
+        File file = new File("test");
+        try {
+            file = getRobotCacheFile(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        try {
+////		File file = new File(dir, "/logo.jpg");
+//		AssetManager am = getAssets();
+//        InputStream inputStream = null;
+//
+//            inputStream = am.open("logo.jpg");
+//
+//        File file = createFileFromInputStream(inputStream);
+
+
 		switch (item.getItemId()) {
 		case R.id.action_share1:
 			System.out.println(file.toURI());
@@ -40,20 +79,27 @@ public class MainActivity extends Activity {
 			shareToFriend(file);
 			return true;
 		case R.id.action_share2:
-			
+//            this.getAssets().open("logo.jpg");
 			System.out.println(file.toURI());
 			shareToTimeLine(file);
 			
 			return true;
 		case R.id.action_share3:
-			File video = new File(dir, "/test.mp4");
+			File video = new File("test");
+            try {
+                file = getRobotCacheFile(this);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 			shareToFriendVideo(video);
-			
+
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 
 		}
+
+
 	}
 
 	private void shareToFriend(File file) {
